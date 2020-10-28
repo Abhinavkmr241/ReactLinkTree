@@ -4,13 +4,11 @@ import { findPage, createFirstContent, callEditContent } from '../http/http-call
 import { connect } from "react-redux";
 import { addContent, editContent, removeContent, addId, deleteItem } from "../redux/actions/content-data";
 import { Redirect } from "react-router-dom";
+import Content from './content-page';
 
 class Links extends Component {
   state = {
-    modals: [
-      false,
-      false
-    ],
+    modal: false,
     content: {
       title: '',
       url: ''
@@ -19,26 +17,24 @@ class Links extends Component {
 
   componentDidMount() {
     findPage().then(res => {
+      console.log(res);
       if (res.page.contents.length) {
         let contentList = res.page.contents;
-        let content = {
-          content: contentList[0]
+        for (let i = 0; i < contentList.length; i++) {
+          this.props.addContent(contentList[i]);
         }
-        console.log(content)
-        this.props.addContent(content);
         this.props.addId(res.page.id);
       } else {
-        // this.props.deleteItem();
+        this.props.deleteItem();
       }
     });
   }
 
-  _toggleModal = index => {
-    const { modals } = this.state;
-    modals[index] = !modals[index];
+  _toggleModal = () => {
+    const newModal = !this.state.modal;
     this.setState({
-      modals
-    })
+      modal: newModal
+    });
   }
 
   _handleOnChange = (field, value) => {
@@ -95,31 +91,13 @@ class Links extends Component {
         this.props.addContent(content);
       });
     }
-    this._toggleModal(1);
-  }
-
-  _handleToggle = (value, id) => {
-    if (value.checked) {
-      const obj = {
-        content: {
-          _id: id,
-          type: 'status',
-          value: true
-        }
+    this.setState({
+      content: {
+        title: '',
+        url: ''
       }
-      this.props.editContent(obj);
-      console.log(this.props.contentData.contents);
-    } else {
-      const obj = {
-        content: {
-          _id: id,
-          type: 'status',
-          value: false
-        }
-      }
-      this.props.editContent(obj);
-      console.log(this.props.contentData.contents);
-    }
+    })
+    this._toggleModal();
   }
 
   render() {
@@ -132,7 +110,7 @@ class Links extends Component {
                 <div className="d-flex justify-content-between align-items-center my-3">
                   <h4 className="pg-title">Links</h4>
 
-                  <Button className="addBtn" onClick={() => this._toggleModal(1)}>
+                  <Button className="addBtn" onClick={() => this._toggleModal()}>
                     <i className="fa fa-plus mr-1"></i> Add New Link
                   </Button>
                 </div>
@@ -140,27 +118,7 @@ class Links extends Component {
                 <Card className="userDetails mb-4">
                   <CardBody>
                     {this.props.contentData.contents.map(content => (
-                      <div className="addedLinksWrap">
-                        <div className="moveLink">
-                          <i className="fa fa-ellipsis-v"></i>
-                        </div>
-                        <div className="addedLinkDetails">
-                          <h5>{content.content.title}</h5>
-                          <p>{content.content.url}</p>
-                          <div className="actionBtnWrap" key={content._id}>
-                            <CustomInput type="switch" id="exampleCustomSwitch" name="customSwitch" label="" className="disableLink"
-                              onClick={(e) => this._handleToggle(e.target, content._id)}
-                            />
-
-                            <Button className="delLinkBtn">
-                              <i className="fa fa-pencil"></i>
-                            </Button>
-                            <Button className="delLinkBtn" onClick={() => this._toggleModal(2)}>
-                              <i className="fa fa-trash-o text-danger"></i>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
+                      <Content content={content} id={content._id} key={content._id} />
                     ))}
                   </CardBody>
                 </Card>
@@ -196,8 +154,8 @@ class Links extends Component {
           </Row>
 
           {/* Modal for showing "Create New Link" */}
-          <Modal isOpen={this.state.modals[1]} toggle={() => this._toggleModal(1)} className="modal-dialog-centered">
-            <ModalHeader toggle={() => this._toggleModal(1)}>Add New Link</ModalHeader>
+          <Modal isOpen={this.state.modal} toggle={() => this._toggleModal()} className="modal-dialog-centered">
+            <ModalHeader toggle={() => this._toggleModal()}>Add New Link</ModalHeader>
             <ModalBody className="modalContent">
               <FormGroup>
                 <Label>Title</Label>
@@ -215,31 +173,15 @@ class Links extends Component {
               </FormGroup>
             </ModalBody>
             <ModalFooter>
-              <Button className="modalBtnCancel" toggle={() => this._toggleModal(1)}
+              <Button className="modalBtnCancel" toggle={() => this._toggleModal()}
                 onClick={() => this._toggleModal(1)}
               >
                 Cancel
               </Button>
-              <Button className="modalBtnSave" toggle={() => this._toggleModal(1)}
+              <Button className="modalBtnSave" toggle={() => this._toggleModal()}
                 onClick={() => this._addContent()}
               >
                 Create
-              </Button>
-            </ModalFooter>
-          </Modal>
-
-          {/* Modal for deleting an exisiting Link */}
-          <Modal isOpen={this.state.modals[2]} toggle={() => this._toggleModal(2)} className="modal-dialog-centered">
-            <ModalHeader toggle={() => this._toggleModal(2)}>Delete Link</ModalHeader>
-            <ModalBody className="modalContent text-center">
-              <h5 className="mt-3 px-4" style={{ fontWeight: 400 }}>Are you sure you want to delete this Link? This cannot be undone.</h5>
-            </ModalBody>
-            <ModalFooter>
-              <Button className="modalBtnCancel" toggle={() => this._toggleModal(2)}>
-                Cancel
-              </Button>
-              <Button className="modalBtnSave" toggle={() => this._toggleModal(2)}>
-                Delete
               </Button>
             </ModalFooter>
           </Modal>
@@ -267,4 +209,3 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Links);
-// export default Links;

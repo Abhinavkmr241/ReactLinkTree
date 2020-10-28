@@ -17,20 +17,23 @@ export const contentDataReducer = (
         }
         case EDIT_CONTENT: {
             newState.contents.map(key => {
-                if (key.content._id === action.payload.content._id) {
-                    if (action.payload.content.type === "title") {
-                        key.content.title = action.payload.content.value
-                    } else if (action.payload.content.type === "type") {
-                        key.content.url = action.payload.content.value
-                    } else if (action.payload.content.type === "status") {
-                        key.status = action.payload.content.value
+                if (key._id === action.payload.content._id) {
+                    switch (action.payload.content.type) {
+                        case "contentData": {
+                            key.content.title = action.payload.content.title;
+                            key.content.url = action.payload.content.url;
+                            break;
+                        }
+                        case "status": {
+                            key.status = action.payload.content.value
+                        }
                     }
                 }
             })
             break;
         }
         case REMOVE_CONTENT: {
-            newState.contents = newState.contents.filter(key => key.content._id !== action.payload._id)
+            newState.contents = newState.contents.filter(key => key._id !== action.payload._id)
             break;
         }
         case ADD_ID: {

@@ -62,25 +62,29 @@ class RequestDemo extends Component {
     this.setState({ activeIndex: newIndex });
   }
 
-  login = (e) => {
-    e.preventDefault();
-    let isDirty = {
-      email: true,
-      password: true,
-    };
-    this.setState({ isDirty }, () => {
-      let errors = this._validateForm();
-      console.log(errors);
-      if (!errors) {
-        const signupData = {
-          email: this.state.user.email,
-          userName: this.state.user.userName,
-          password: this.state.user.password
+  login = (e, temp) => {
+    if (temp) {
+      e.preventDefault();
+      let isDirty = {
+        email: true,
+        password: true,
+      };
+      this.setState({ isDirty }, () => {
+        let errors = this._validateForm();
+        console.log(errors);
+        if (!errors) {
+          const signupData = {
+            email: this.state.user.email,
+            userName: this.state.user.userName,
+            password: this.state.user.password
+          }
+          signUp(signupData).then(res => console.log(res));
+          this.props.history.push('/login')
         }
-        signUp(signupData).then(res => console.log(res));
-        this.props.history.push('/login')
-      }
-    });
+      });
+    } else {
+      this.props.history.push('/login')
+    }
   }
 
   //handling input here
@@ -88,11 +92,6 @@ class RequestDemo extends Component {
     const { user, isDirty } = this.state;
     user[field] = value;
     isDirty[field] = true;
-    // if (field === "userName") {
-    //   this.setState({
-    //     isUnique: false
-    //   });
-    // }
     this.setState({ user, isDirty }, () => {
       this._validateForm();
     });
@@ -125,7 +124,7 @@ class RequestDemo extends Component {
         }
       } else if (each === "userName" && isDirty.userName) {
         const obj = {
-          userName : user.userName
+          userName: user.userName
         }
         if (!user.userName.trim().length) {
           errors[each] = "*Required";
@@ -271,11 +270,11 @@ class RequestDemo extends Component {
                     <span className="fa fa-eye eyeIcon d-none"></span>
                   </FormGroup>
 
-                  <Button className="recruitechThemeBtn loginBtn" style={{ marginTop: 30 }} onClick={this.login}>Get Started</Button>
+                  <Button className="recruitechThemeBtn loginBtn" style={{ marginTop: 30 }} onClick={(e) => this.login(e, true)}>Get Started</Button>
                 </Form>
 
                 <div className="register mt-0 mb-3">
-                  Already have an account? <a href="javascript:void(0)" onClick={this.login}>Login</a>
+                  Already have an account? <a href="javascript:void(0)" onClick={(e) => this.login(e, false)}>Login</a>
                 </div>
               </div>
 
