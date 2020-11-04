@@ -55,8 +55,8 @@ export const Content = ({ content, id }) => {
                 });
             } else {
                 setContentData({
-                    ...contentData,
                     title: newContent.title,
+                    url: content.content.url,
                     errors: {}
                 })
             }
@@ -73,7 +73,7 @@ export const Content = ({ content, id }) => {
                 newContent.errors.url = "Not a proper URL format"
             } else {
                 setContentData({
-                    ...contentData,
+                    title: content.content.title,
                     url: newContent.url,
                     errors: {}
                 })
@@ -155,6 +155,7 @@ export const Content = ({ content, id }) => {
                         <Label>Title</Label>
                         <Input type="text" placeholder="Enter Title"
                             onChange={(e) => _handleEdit("title", e.target.value)}
+                            defaultValue={content.content.title}
                         />
                         {contentData.errors && (
                             <small style={{ color: "red" }}>{contentData.errors.title}</small>
@@ -164,6 +165,7 @@ export const Content = ({ content, id }) => {
                         <Label>URL</Label>
                         <Input type="text" placeholder="Enter URL"
                             onChange={(e) => _handleEdit("url", e.target.value)}
+                            defaultValue={content.content.url}
                         />
                         {contentData.errors && (
                             <small style={{ color: "red" }}>{contentData.errors.url}</small>

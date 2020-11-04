@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import { forgotPassword } from '../http/http-calls';
 import {Col, Container, Row, Carousel, CarouselIndicators, CarouselItem, CarouselCaption, Button, Form, Input, FormGroup, Label } from 'reactstrap';
 
@@ -16,6 +15,9 @@ class ForgotPassword extends Component {
     this.state = { activeIndex: 0,
       user: {
         email: ''
+      },
+      isDirty: {
+        email: false
       },
       errors: {}
     };
@@ -54,24 +56,36 @@ class ForgotPassword extends Component {
   login = (e, temp) => {
     if (temp) {
       e.preventDefault();
-      let errors = this._validateMail("email", this.state.user.email);
-      console.log(errors);
-      if (!errors) {
-        const obj = {
-          handle: this.state.user.email
-        }
-        forgotPassword(obj).then(res => console.log(res));
-        this.props.history.push('/login')
+      let isDirty = {
+        email: true
       }
+      this.setState({ isDirty }, () => {
+        let errors = this._validateMail();
+        if (!errors) {
+          const obj = {
+            handle: this.state.user.email
+          }
+          forgotPassword(obj).then(res => console.log(res));
+          this.props.history.push('/login')
+        }
+      });
     } else {
       this.props.history.push('/login')
     }
   }
-  
-  _validateMail = (field, value) => {
-    const { user, errors } = this.state;
+
+  _handleInput = (field, value) => {
+    const { user, isDirty } = this.state;
     user[field] = value;
-    this.setState({ user, errors }, () => {
+    isDirty[field] = true;
+    this.setState({ user, isDirty }, () => {
+      this._validateMail();
+    });
+  }
+  
+  _validateMail = () => {
+    const { user, errors, isDirty } = this.state;
+    if (isDirty.email) {
       if (!user.email.trim().length) {
         errors.email = "*Required";
       } else if (
@@ -83,9 +97,10 @@ class ForgotPassword extends Component {
         errors.email = "Enter a valid email ID";
       } else {
         delete errors.email;
+        isDirty.email = false;
       }
-      this.setState({ errors });
-    });
+    }
+    this.setState({ errors });
     return Object.keys(errors).length ? errors : null;
   }
 
@@ -140,7 +155,7 @@ class ForgotPassword extends Component {
                     <Input type="email" placeholder="Your Email" 
                       value={this.state.user.email}
                       onChange={(e) => 
-                        this._validateMail("email", e.target.value)
+                        this._handleInput("email", e.target.value)
                       }
                     />
                     {this.state.errors && (

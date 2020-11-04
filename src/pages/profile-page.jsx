@@ -1,10 +1,33 @@
 import React, { Component } from 'react';
 import { Col, Container, Row, Button, Label, Card, CardBody } from 'reactstrap';
-import { connect } from "react-redux";
 import config from '../config';
+import { getUserProfile } from "../http/http-calls";
 
-class ProfilePreview extends Component {
-
+export class ProfilePage extends Component {
+constructor(props) {
+    super(props);
+    this.state = {
+      userName: "",
+      contentData: [],
+      avatarLink: "",
+      template: ""
+    };
+  }
+  componentDidMount() {
+    let userName = this.props.match.params.userName;
+    console.log(userName);
+    getUserProfile(userName)
+      .then((res) => {
+        console.log(res);
+        this.setState({
+          userName: res.page._user.userName,
+          contentData: res.page.contents,
+          avatarLink: res.page._user.avatarLink,
+          template: res.page._user.template
+        });
+      })
+      .catch((err) => console.log(err));
+  }
   _themeClassSelector = (template) => {
     let themeClass = '';
     switch (template) {
@@ -78,25 +101,22 @@ class ProfilePreview extends Component {
               <div className="d-flex justify-content-start align-items-center my-3">
                 <h4 className="pg-title">Profile</h4>
               </div>
-
               <Card className="userDetails mb-4">
-                <CardBody className={this._themeClassSelector(this.props.userData.template)}>
+                <CardBody className={this._themeClassSelector(this.state.template)}>
                   <div className="text-center">
                     <Label className="btn uploadBtnProfile">
-                      {/* <input type="file" style={{ display: 'none' }} /> */}
-                      {this.props.userData.avatarLink ?
-                        <img src={this.props.userData.avatarLink} alt="chosen" style={{ height: '100px', width: '100px' }} />
+                    {this.state.avatarLink ?
+                        <img src={this.state.avatarLink} alt="chosen" style={{ height: '100px', width: '100px' }} />
                         : <img alt="" className="" src={'assets/img/user-img-default.png'} />
                       }
                     </Label>
-                    <h5 className={this._textClassSelector(this.props.userData.template)}>{"@" + this.props.userData.userName}</h5>
+                    <h5 className={this._textClassSelector(this.state.template)}>{"@" + this.state.userName}</h5>
                   </div>
-
                   <div className="mt-4">
-                    {this.props.contentData.contents.map(key => {
+                    {this.state.contentData.map(key => {
                       if (key.status) {
                         return (
-                          <Button className={this._btnClassSelector(this.props.userData.template)}
+                          <Button className={this._btnClassSelector(this.state.template)}
                             onClick={() => window.open(`${key.content.url}`, "_blank")}
                           >
                             {key.content.title}
@@ -115,11 +135,4 @@ class ProfilePreview extends Component {
   }
 }
 
-const mapStateToProps = (state) => {
-  return {
-    contentData: state.contentData,
-    userData: state.userData
-  };
-};
-
-export default connect(mapStateToProps)(ProfilePreview);
+export default ProfilePage;

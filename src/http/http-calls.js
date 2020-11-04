@@ -1,5 +1,5 @@
 import config  from '../config';
-import { makePostRequest, makeGetRequest, makePutRequest } from './http-service';
+import { makePostRequest, makeGetRequest, makePutRequest, uploadFileMultiPart } from './http-service';
 const BASE_URL = config.BASE_URL; // create a config.js to maintain the BASE_URL
 
 export const signUp = signupData => {
@@ -89,6 +89,22 @@ export const findPage = () => {
   });
 };
 
+export const findUser = () => {
+  return new Promise((resolve, reject) => {
+    makeGetRequest(
+      BASE_URL + "/user",
+      true
+    )
+      .then(res => {
+        resolve(res);
+      })
+      .catch(e => {
+        console.log("API call error: ", e);
+        reject(e);
+      });
+  });
+};
+
 export const callEditContent = (contentData, id) => {
   return new Promise((resolve, reject) => {
     makePutRequest(
@@ -117,6 +133,52 @@ export const createFirstContent = (contentData) => {
         resolve(res);
       })
       .catch(e => {
+        console.log("API call error: ", e);
+        reject(e);
+      });
+  });
+};
+
+export const uploadCloudinary = (formData) => {
+  return new Promise((resolve, reject) => {
+    uploadFileMultiPart(
+      `https://api.cloudinary.com/v1_1/${config.cloudinaryConfig.cloudName}/auto/upload?upload_preset=${config.cloudinaryConfig.uploadPreset}`,
+      false,
+      formData,
+      'image'
+    ).then(res => {
+        resolve(res);
+      })
+      .catch(e => {
+        console.log("API call error: ", e);
+        reject(e);
+      });
+  });
+}
+
+export const updateUserData = (userData) => {
+  return new Promise((resolve, reject) => {
+    makePutRequest(
+      BASE_URL + "/user",
+      true,
+      userData
+    ).then(res => {
+      resolve(res);
+    })
+    .catch(e => {
+      console.log("API call error: ", e);
+      reject(e);
+    });
+  });
+}
+
+export const getUserProfile = (userName) => {
+  return new Promise((resolve, reject) => {
+    makeGetRequest(BASE_URL + `/page-details/${userName}`,)
+      .then((res) => {
+        resolve(res);
+      })
+      .catch((e) => {
         console.log("API call error: ", e);
         reject(e);
       });

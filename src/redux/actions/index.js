@@ -1,5 +1,8 @@
 export { ADD_USERDATA } from './action-types';
 export { REMOVE_USERDATA } from './action-types';
+export { ADD_USER_AVATAR } from './action-types';
+export { ADD_USER_THEME } from './action-types';
+
 
 export { ADD_CONTENT } from './action-types';
 export { EDIT_CONTENT } from './action-types';

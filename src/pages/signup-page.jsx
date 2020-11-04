@@ -28,7 +28,8 @@ class RequestDemo extends Component {
         repeatPassword: false
       },
       errors: {},
-      isUnique: false
+      isUnique: false,
+      visibility: [false, false]
     };
     this.next = this.next.bind(this);
     this.previous = this.previous.bind(this);
@@ -68,6 +69,7 @@ class RequestDemo extends Component {
       let isDirty = {
         email: true,
         password: true,
+        repeatPassword: true
       };
       this.setState({ isDirty }, () => {
         let errors = this._validateForm();
@@ -126,17 +128,21 @@ class RequestDemo extends Component {
         const obj = {
           userName: user.userName
         }
+        this.checkUnique(obj);
         if (!user.userName.trim().length) {
           errors[each] = "*Required";
-        } else if (!(this.checkUnique(obj) && this.state.isUnique)) {
+        } else if (user.userName.trim().length && (!this.state.isUnique)) {
           errors[each] = "Enter Unique Username";
         } else {
           delete errors[each];
           isDirty.userName = false;
         }
       } else if (each === "repeatPassword" && isDirty.repeatPassword) {
-        if (!(user.repeatPassword === user.password)) {
-          errors[each] = "*Password not matching";
+        if (!user.repeatPassword.trim().length) {
+          errors[each] = "*Required";
+        } else if (user.repeatPassword.trim().length && 
+          !(user.repeatPassword === user.password)) {
+          errors[each] = "Incorrect password";
         } else {
           delete errors[each];
           isDirty.repeatPassword = false;
@@ -159,7 +165,13 @@ class RequestDemo extends Component {
         })
       }
     });
-    return true;
+  }
+
+  _handleVisibility = (e, index) => {
+    e.preventDefault();
+    const { visibility } = this.state;
+    visibility[index] = !visibility[index]
+    this.setState({ visibility });
   }
 
   render() {
@@ -239,7 +251,7 @@ class RequestDemo extends Component {
 
                   <FormGroup className="position-relative">
                     <Label>Password</Label>
-                    <Input type="text" placeholder="Enter Password" style={{ paddingRight: 35 }}
+                    <Input type={this.state.visibility[0] ? "text": "password"} placeholder="Enter Password" style={{ paddingRight: 35 }}
                       value={this.state.user.password}
                       onChange={(e) =>
                         this._handleOnChange("password", e.target.value)
@@ -249,13 +261,13 @@ class RequestDemo extends Component {
                       <small style={{ color: "red" }}>{this.state.errors.password}</small>
                     )}
                     {/* eye icon for viewing the entered password */}
-                    <span className="fa fa-eye-slash eyeIcon"></span>
+                    <span className="fa fa-eye-slash eyeIcon" onClick={(e) => this._handleVisibility(e, 0)}></span>
                     {/* toggle the above icon with the below icon */}
-                    <span className="fa fa-eye eyeIcon d-none"></span>
+                    {/* <span className="fa fa-eye eyeIcon d-none"></span> */}
                   </FormGroup>
                   <FormGroup className="position-relative">
                     <Label>Repeat Password</Label>
-                    <Input type="text" placeholder="Repeat Password" style={{ paddingRight: 35 }}
+                    <Input type={this.state.visibility[1] ? "text": "password"} placeholder="Repeat Password" style={{ paddingRight: 35 }}
                       value={this.state.user.repeatPassword}
                       onChange={(e) =>
                         this._handleOnChange("repeatPassword", e.target.value)
@@ -265,9 +277,9 @@ class RequestDemo extends Component {
                       <small style={{ color: "red" }}>{this.state.errors.repeatPassword}</small>
                     )}
                     {/* eye icon for viewing the entered password */}
-                    <span className="fa fa-eye-slash eyeIcon"></span>
+                    <span className="fa fa-eye-slash eyeIcon" onClick={(e) => this._handleVisibility(e, 1)}></span>
                     {/* toggle the above icon with the below icon */}
-                    <span className="fa fa-eye eyeIcon d-none"></span>
+                    {/* <span className="fa fa-eye eyeIcon d-none"></span> */}
                   </FormGroup>
 
                   <Button className="recruitechThemeBtn loginBtn" style={{ marginTop: 30 }} onClick={(e) => this.login(e, true)}>Get Started</Button>

@@ -1,7 +1,9 @@
 import React, { Component, Suspense } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import * as router from 'react-router-dom';
-import { Container } from 'reactstrap';
+import { connect } from "react-redux";
+import { removeUser } from '../../redux/actions/user-data';
+import { deleteItem } from '../../redux/actions/content-data';
 
 import {
   AppAside,
@@ -18,6 +20,7 @@ import {
 // sidebar nav config
 import navigation from '../../_nav';
 import ProtectedRoute from '../../components/protected-routes';
+import PublicRoute from '../../components/public-route';
 import ProfilePreview from './../../pages/profile-preview-page';
 import Links from './../../pages/links-page';
 import Appearance from './../../pages/appearance-page';
@@ -31,7 +34,10 @@ class DefaultLayout extends Component {
   loading = () => <div className="animated fadeIn pt-1 text-center">Loading...</div>
 
   signOut(e) {
-    e.preventDefault()
+    e.preventDefault();
+    this.props.removeUser();
+    this.props.deleteItem();
+    localStorage.clear();
     this.props.history.push('/login')
   }
 
@@ -61,7 +67,7 @@ class DefaultLayout extends Component {
             {/* <Container fluid>
             </Container> */}
             <Switch>
-              
+                       
               <ProtectedRoute
                 path={`/profile-preview`}
                 component={ProfilePreview}
@@ -77,7 +83,7 @@ class DefaultLayout extends Component {
                 component={Appearance}
                 redirectRoute={"/login"}
               />
-              <Route path="/" render={() => <Redirect to="/index" />} />
+              <Route path="/" render={() => <Redirect to="/links" />} />
             </Switch>
           </main>
         </div>
@@ -91,4 +97,17 @@ class DefaultLayout extends Component {
   }
 }
 
-export default DefaultLayout;
+const mapStateToProps = (state) => {
+  return {
+    userData: state.userData
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    removeUser: () => dispatch(removeUser()),
+    deleteItem: () => dispatch(deleteItem())
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(DefaultLayout);

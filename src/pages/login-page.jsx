@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import { connect } from "react-redux";
 import { addUser, removeUser } from "../redux/actions/user-data";
 import { login } from "../http/http-calls";
@@ -19,8 +18,7 @@ class Login extends Component {
       activeIndex: 0,
       user: {
         userName: '',
-        password: '',
-        token: ''
+        password: ''
       },
       isDirty: {
         userName: false,
@@ -35,10 +33,6 @@ class Login extends Component {
     this.onExited = this.onExited.bind(this);
   }
 
-  // componentDidUpdate() {
-  //   this.props.removeUser();
-  // }
-  
   onExiting() {
     this.animating = true;
   }
@@ -73,19 +67,30 @@ class Login extends Component {
   }
 
   users = () => {
-    let user = {};
-    const userData = {
-      handle: this.state.user.userName,
-      password: this.state.user.password
+    let isDirty = {
+      userName: true,
+      password: true
     }
-    login(userData).then(res => {
-      user = {
-        userName: res.handle,
-        token: res.token
+    this.setState({ isDirty }, () => {
+      let errors = this._validateForm();
+      if (!errors) {
+        let user = {};
+        const userData = {
+          handle: this.state.user.userName,
+          password: this.state.user.password
+        }
+        login(userData).then(res => {
+          if (!res.error) {
+            user = {
+              userName: res.handle,
+              token: res.token
+            }
+            this.props.addUser({ user });
+            this.props.history.push('/links')
+          }
+        }).catch(err => console.log(err));
       }
-      this.props.addUser({ user });
-      this.props.history.push('/links')
-    }).catch(err => console.log(err));
+    });
   }
 
   //handling input here
@@ -242,5 +247,3 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);
-
-// export default Login;
