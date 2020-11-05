@@ -4,13 +4,14 @@ import { findPage, createFirstContent, callEditContent, findUser } from '../http
 import { connect } from "react-redux";
 import { addContent, editContent, removeContent, addId, deleteItem } from "../redux/actions/content-data";
 import { addUserAvatar, addUserTheme } from "../redux/actions/user-data";
-import { Redirect } from "react-router-dom";
 import Content from './content-page';
 import config from '../config';
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { FacebookShareButton, WhatsappShareButton, FacebookIcon, WhatsappIcon } from "react-share";
 
 class Links extends Component {
   state = {
-    modal: false,
+    modals: [false, false],
     content: {
       title: '',
       url: ''
@@ -19,13 +20,17 @@ class Links extends Component {
       title: false,
       url: false
     },
-    errors: {}
+    errors: {},
+    pageUrl: ''
   }
 
   componentDidMount() {
+    let { pageUrl } = this.state;
+    pageUrl = window.location.href;
+    pageUrl = pageUrl.substring(0, pageUrl.lastIndexOf("/"));
+    this.setState({ pageUrl });
     findPage().then(res => {
-      console.log("first response :- ",res);
-      if ((res.page.contents !== null)&&(res.page.contents !== undefined)) {
+      if ((res.page.contents !== null) && (res.page.contents !== undefined)) {
         if (!this.props.contentData.contents.length) {
           for (let i = 0; i < res.page.contents.length; i++) {
             let content = {
@@ -34,34 +39,25 @@ class Links extends Component {
             this.props.addContent(content);
           }
         }
+        this.props.addId(res.page.id);
       }
     });
     findUser().then(res => {
       if (!res.error) {
         this.props.addUserAvatar(res.user.avatarLink);
-        if ((res.user.template !== null)&&(res.user.template !== undefined) ) {
+        if ((res.user.template !== null) && (res.user.template !== undefined)) {
           this.props.addUserTheme(res.user.template);
         } else {
           this.props.addUserTheme("Light");
         }
       }
-    })
+    });
   }
 
-  _toggleModal = () => {
-    const newModal = !this.state.modal;
-    this.setState({
-      modal: newModal,
-      content: {
-        title: '',
-        url: ''
-      },
-      isDirty: {
-        title: false,
-        url: false
-      },
-      errors: {}
-    });
+  _toggleModal = (index) => {
+    const { modals } = this.state;
+    modals[index] = !modals[index];
+    this.setState({ modals });
   }
 
   _handleOnChange = (field, value) => {
@@ -155,7 +151,7 @@ class Links extends Component {
             this.props.addContent(content);
           });
         }
-        this._toggleModal();
+        this._toggleModal(0);
       }
     });
   }
@@ -224,6 +220,41 @@ class Links extends Component {
     return textClass;
   }
 
+  reorder = (list, startIndex, endIndex) => {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    return result;
+  };
+
+  getItemStyle = (isDragging, draggableStyle) => ({
+    userSelect: "none",
+    background: isDragging ? "lightgreen" : "#fff",
+    ...draggableStyle,
+  });
+
+  getListStyle = (isDraggingOver) => ({
+    background: isDraggingOver ? "lightblue" : "#fff",
+  });
+
+  onDragEnd = (result) => {
+    if (!result.destination) {
+      return;
+    }
+    const newContent = this.reorder(
+      this.props.contentData.contents,
+      result.source.index,
+      result.destination.index
+    );
+    this.props.deleteItem();
+    for (let i = 0; i < newContent.length; i++) {
+      let content = {
+        content: newContent[i]
+      }
+      this.props.addContent(content);
+    }
+  }
+
   render() {
     return (
       <div className="app flex-row animated fadeIn innerPagesBg">
@@ -234,23 +265,46 @@ class Links extends Component {
                 <div className="d-flex justify-content-between align-items-center my-3">
                   <h4 className="pg-title">Links</h4>
 
-                  <Button className="addBtn" onClick={() => this._toggleModal()}>
+                  <Button className="addBtn" onClick={() => this._toggleModal(0)}>
                     <i className="fa fa-plus mr-1"></i> Add New Link
                   </Button>
                 </div>
 
                 <Card className="userDetails mb-4">
                   <CardBody>
-                    {this.props.contentData.contents.map(content => (
-                      <Content content={content} id={content._id} key={content._id} />
-                    ))}
+                    <DragDropContext onDragEnd={this.onDragEnd}>
+                      <Droppable droppableId='droppable'>
+                        {(provided, snapshot) => (
+                          <div
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            style={this.getListStyle(snapshot.isDraggingOver)}>
+                            {this.props.contentData.contents.map((content, index) => (
+                              <Draggable key={content._id} draggableId={content._id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div ref={provided.innerRef} {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    style={this.getItemStyle(
+                                      snapshot.isDragging,
+                                      provided.draggableProps.style
+                                    )}>
+                                    <Content content={content} id={content._id} key={content._id} />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
                   </CardBody>
                 </Card>
               </div>
 
               <div className="profilePreviewWrap">
                 <Button className="shareProfileBtn"
-                  onClick={() => this.props.history.push(`/profile/${this.props.userData.userName}`)}
+                  onClick={() => this._toggleModal(1)}
                 >
                   Share
                 </Button>
@@ -286,8 +340,8 @@ class Links extends Component {
           </Row>
 
           {/* Modal for showing "Create New Link" */}
-          <Modal isOpen={this.state.modal} toggle={() => this._toggleModal()} className="modal-dialog-centered">
-            <ModalHeader toggle={() => this._toggleModal()}>Add New Link</ModalHeader>
+          <Modal isOpen={this.state.modals[0]} toggle={() => this._toggleModal(0)} className="modal-dialog-centered">
+            <ModalHeader toggle={() => this._toggleModal(0)}>Add New Link</ModalHeader>
             <ModalBody className="modalContent">
               <FormGroup>
                 <Label>Title</Label>
@@ -311,15 +365,53 @@ class Links extends Component {
               </FormGroup>
             </ModalBody>
             <ModalFooter>
-              <Button className="modalBtnCancel" toggle={() => this._toggleModal()}
+              <Button className="modalBtnCancel" toggle={() => this._toggleModal(0)}
                 onClick={() => this._toggleModal(1)}
               >
                 Cancel
               </Button>
-              <Button className="modalBtnSave" toggle={() => this._toggleModal()}
+              <Button className="modalBtnSave" toggle={() => this._toggleModal(0)}
                 onClick={() => this._addContent()}
               >
                 Create
+              </Button>
+            </ModalFooter>
+          </Modal>
+
+          {/* Modal for showing "Share" */}
+          <Modal isOpen={this.state.modals[1]} toggle={() => this._toggleModal(1)} className="modal-dialog-centered">
+            <ModalHeader toggle={() => this._toggleModal(1)}>Share</ModalHeader>
+            <ModalBody className="modalContent">
+              <FormGroup>
+               <div style={{display: "flex", justifyContent: "space-around"}}>
+                <div>
+                  <FacebookShareButton 
+                    url={`${this.state.pageUrl}/profile/${this.props.userData.userName}`}
+                    title="Facebook :- "
+                    style={{outline: "none"}}
+                  >
+                    <FacebookIcon size={50} round />
+                    <h6>Facebook</h6>
+                  </FacebookShareButton>
+                </div>
+                <div>
+                   <WhatsappShareButton
+                     url={`${this.state.pageUrl}/profile/${this.props.userData.userName}`}
+                     title="WhatsApp :- "
+                     style={{outline: "none"}}
+                   >
+                     <WhatsappIcon size={50} round />
+                     <h6>WhatsApp</h6>
+                   </WhatsappShareButton>
+                </div>  
+               </div>
+              </FormGroup>
+            </ModalBody>
+            <ModalFooter>
+              <Button className="modalBtnCancel" toggle={() => this._toggleModal(1)}
+                onClick={() => this._toggleModal(1)}
+              >
+                Cancel
               </Button>
             </ModalFooter>
           </Modal>

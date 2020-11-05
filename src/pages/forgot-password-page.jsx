@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { forgotPassword } from '../http/http-calls';
 import {Col, Container, Row, Carousel, CarouselIndicators, CarouselItem, CarouselCaption, Button, Form, Input, FormGroup, Label } from 'reactstrap';
+import { ToastsStore } from "react-toasts";
 
 const items = [
   {
@@ -65,8 +66,14 @@ class ForgotPassword extends Component {
           const obj = {
             handle: this.state.user.email
           }
-          forgotPassword(obj).then(res => console.log(res));
-          this.props.history.push('/login')
+          forgotPassword(obj).then(res => {
+            if (res.error) {
+              ToastsStore.error("Email not found...please check again!!!");
+            } else {
+              ToastsStore.success("Password reset link sent to mail");
+              this.props.history.push('/login')
+            }
+          });
         }
       });
     } else {

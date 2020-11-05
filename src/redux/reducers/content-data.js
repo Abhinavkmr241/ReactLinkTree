@@ -43,7 +43,7 @@ export const contentDataReducer = (
         case DELETE_ITEM: {
             newState = {
                 contents: [],
-                id: ''
+                id: newState.id
             }
             break;
         }

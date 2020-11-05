@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import { ToastsStore } from "react-toasts";
 import { Col, Container, Row, Carousel, CarouselIndicators, CarouselItem, CarouselCaption, Button, Form, Input, FormGroup, Label } from 'reactstrap';
 import { signUp, checkUsername } from '../http/http-calls';
 
@@ -28,7 +28,6 @@ class RequestDemo extends Component {
         repeatPassword: false
       },
       errors: {},
-      isUnique: false,
       visibility: [false, false]
     };
     this.next = this.next.bind(this);
@@ -69,6 +68,7 @@ class RequestDemo extends Component {
       let isDirty = {
         email: true,
         password: true,
+        userName: true,
         repeatPassword: true
       };
       this.setState({ isDirty }, () => {
@@ -80,8 +80,15 @@ class RequestDemo extends Component {
             userName: this.state.user.userName,
             password: this.state.user.password
           }
-          signUp(signupData).then(res => console.log(res));
-          this.props.history.push('/login')
+          signUp(signupData).then(res => {
+            console.log("signup res :- ", res);
+            if (!res.error) {
+              ToastsStore.success("Sign up successful...");
+              this.props.history.push('/login')
+            } else {
+              ToastsStore.error("Sign up failed!!!");
+            }
+          });
         }
       });
     } else {
@@ -125,14 +132,13 @@ class RequestDemo extends Component {
           isDirty.password = false;
         }
       } else if (each === "userName" && isDirty.userName) {
-        const obj = {
-          userName: user.userName
-        }
-        this.checkUnique(obj);
         if (!user.userName.trim().length) {
           errors[each] = "*Required";
-        } else if (user.userName.trim().length && (!this.state.isUnique)) {
-          errors[each] = "Enter Unique Username";
+        } else if (user.userName.trim().length) {
+          let obj = {
+            userName: user.userName
+          }
+          this.checkUnique(obj);
         } else {
           delete errors[each];
           isDirty.userName = false;
@@ -154,16 +160,14 @@ class RequestDemo extends Component {
   }
 
   checkUnique = userName => {
+    let { errors } = this.state;
     checkUsername(userName).then(res => {
       if (res.isAvailable) {
-        this.setState({
-          isUnique: true
-        });
+          delete errors.userName;
       } else {
-        this.setState({
-          isUnique: false
-        })
+        errors.userName = "Enter a unique username"
       }
+      this.setState({ errors });
     });
   }
 

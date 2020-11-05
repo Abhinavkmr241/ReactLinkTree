@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { addUser, removeUser } from "../redux/actions/user-data";
 import { login } from "../http/http-calls";
 import { Col, Container, Row, Carousel, CarouselIndicators, CarouselItem, CarouselCaption, Button, Form, Input, FormGroup, Label } from 'reactstrap';
+import { ToastsStore } from "react-toasts";
 
 const items = [
   {
@@ -86,9 +87,13 @@ class Login extends Component {
               token: res.token
             }
             this.props.addUser({ user });
+            ToastsStore.success("Successfully Logged-In ");
             this.props.history.push('/links')
+          } else {
+            ToastsStore.error("Please check Username & Password");
           }
-        }).catch(err => console.log(err));
+        }).catch(err => {console.log(err);}
+        );
       }
     });
   }
