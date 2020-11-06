@@ -8,6 +8,8 @@ import Content from './content-page';
 import config from '../config';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { FacebookShareButton, WhatsappShareButton, FacebookIcon, WhatsappIcon } from "react-share";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { ToastsStore } from 'react-toasts';
 
 class Links extends Component {
   state = {
@@ -92,7 +94,7 @@ class Links extends Component {
         if (!content.url.trim().length) {
           errors[each] = "*Required";
         } else if (content.url.trim().length &&
-          !content.url.match(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/)
+          !content.url.match(/^https?:\/\/(?!\/)/i)
         ) {
           errors[each] = "Not a proper URL format";
         } else {
@@ -421,6 +423,12 @@ class Links extends Component {
                 onClick={() => this._toggleModal(1)}
               >
                 Cancel
+              </Button>
+              <Button className="modalBtnSave">
+              <CopyToClipboard text={`${this.state.pageUrl}/profile/${this.props.userData.userName}`}
+                onCopy={() => ToastsStore.success("Link copied to Clipboard...")}>
+                <span>Copy Link</span>
+              </CopyToClipboard>
               </Button>
             </ModalFooter>
           </Modal>

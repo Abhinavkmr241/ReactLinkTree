@@ -9,6 +9,7 @@ import ForgotPasswordPage from './pages/forgot-password-page';
 import ProfilePreview from './pages/profile-preview-page';
 import PublicRoute from './components/public-route';
 import { ProfilePage } from './pages/profile-page';
+import { Errorpage } from './pages/error-page';
 import { store, persistor } from "./redux/store";
 import { PersistGate } from "redux-persist/integration/react";
 import { Provider } from "react-redux";
@@ -28,6 +29,7 @@ function App() {
               <PublicRoute exact path="/forgot-password" component={ForgotPasswordPage} redirectRoute={"/links"} />
               <Route exact path="/index" render={() => <Redirect to="/login" />} />
               <Route exact path="/profile/:userName" component={ProfilePage} />
+              <Route exact path="/404" component={Errorpage} />
 
               <Route path="/" component={DefaultLayout} />
               <Route path="*" render={() => <Redirect to="/" />} />

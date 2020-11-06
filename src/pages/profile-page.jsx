@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { Redirect } from 'react-router-dom';
+import { ToastsStore } from 'react-toasts';
 import { Col, Container, Row, Button, Label, Card, CardBody } from 'reactstrap';
 import config from '../config';
 import { getUserProfile } from "../http/http-calls";
@@ -10,9 +12,11 @@ constructor(props) {
       userName: "",
       contentData: [],
       avatarLink: "",
-      template: ""
+      template: "",
+      redirect: false
     };
   }
+
   componentDidMount() {
     let userName = this.props.match.params.userName;
     console.log(userName);
@@ -23,11 +27,18 @@ constructor(props) {
           userName: res.page._user.userName,
           contentData: res.page.contents,
           avatarLink: res.page._user.avatarLink,
-          template: res.page._user.template
+          template: res.page._user.template,
+          redirect: false
         });
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        ToastsStore.error("Error :- "+ err.reason);
+        this.setState({
+          redirect: true
+        });
+      });
   }
+
   _themeClassSelector = (template) => {
     let themeClass = '';
     switch (template) {
@@ -93,6 +104,13 @@ constructor(props) {
   }
 
   render() {
+    if (this.state.redirect) {
+      return (
+        <Redirect to={{
+          pathname: "/404"
+        }} />
+      )
+    }
     return (
       <div className="app flex-row animated fadeIn innerPagesBg">
         <Container>
