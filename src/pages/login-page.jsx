@@ -81,7 +81,6 @@ class Login extends Component {
           password: this.state.user.password
         }
         login(userData).then(res => {
-          if (!res.error) {
             user = {
               userName: res.handle,
               token: res.token
@@ -89,11 +88,9 @@ class Login extends Component {
             this.props.addUser({ user });
             ToastsStore.success("Successfully Logged-In ");
             this.props.history.push('/links')
-          } else {
-            ToastsStore.error("Please check Username & Password");
-          }
-        }).catch(err => {console.log(err);}
-        );
+        }).catch((err) => {
+          ToastsStore.error("Login failed :- "+ err.reason);
+        });
       }
     });
   }

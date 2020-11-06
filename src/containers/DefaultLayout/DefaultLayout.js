@@ -4,6 +4,7 @@ import * as router from 'react-router-dom';
 import { connect } from "react-redux";
 import { removeUser } from '../../redux/actions/user-data';
 import { deleteItem } from '../../redux/actions/content-data';
+import { ToastsStore } from "react-toasts";
 
 import {
   AppAside,
@@ -38,6 +39,7 @@ class DefaultLayout extends Component {
     this.props.removeUser();
     this.props.deleteItem();
     localStorage.clear();
+    ToastsStore.success("Logged out successfully...");
     this.props.history.push('/login')
   }
 

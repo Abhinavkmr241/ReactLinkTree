@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ToastsStore } from "react-toasts";
-import { Col, Container, Row, Carousel, CarouselIndicators, CarouselItem, CarouselCaption, Button, Form, Input, FormGroup, Label } from 'reactstrap';
+import { Col, Container, Row, Carousel, CarouselItem, CarouselCaption, Button, Form, Input, FormGroup, Label } from 'reactstrap';
 import { signUp, checkUsername } from '../http/http-calls';
 
 const items = [
@@ -81,13 +81,10 @@ class RequestDemo extends Component {
             password: this.state.user.password
           }
           signUp(signupData).then(res => {
-            console.log("signup res :- ", res);
-            if (!res.error) {
               ToastsStore.success("Sign up successful...");
               this.props.history.push('/login')
-            } else {
-              ToastsStore.error("Sign up failed!!!");
-            }
+          }).catch((err) => {
+            ToastsStore.error("Signup error :- "+ err.reason);
           });
         }
       });

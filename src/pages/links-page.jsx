@@ -30,16 +30,18 @@ class Links extends Component {
     pageUrl = pageUrl.substring(0, pageUrl.lastIndexOf("/"));
     this.setState({ pageUrl });
     findPage().then(res => {
-      if ((res.page.contents !== null) && (res.page.contents !== undefined)) {
-        if (!this.props.contentData.contents.length) {
-          for (let i = 0; i < res.page.contents.length; i++) {
-            let content = {
-              content: res.page.contents[i]
+      if (res.page !== null) {
+        if ((res.page.contents !== null) && (res.page.contents !== undefined)) {
+          if (!this.props.contentData.contents.length) {
+            for (let i = 0; i < res.page.contents.length; i++) {
+              let content = {
+                content: res.page.contents[i]
+              }
+              this.props.addContent(content);
             }
-            this.props.addContent(content);
           }
+          this.props.addId(res.page.id);
         }
-        this.props.addId(res.page.id);
       }
     });
     findUser().then(res => {
@@ -55,9 +57,15 @@ class Links extends Component {
   }
 
   _toggleModal = (index) => {
-    const { modals } = this.state;
+    let { modals, content } = this.state;
     modals[index] = !modals[index];
-    this.setState({ modals });
+    if (index === 0) {
+      content = {
+        title: '',
+        url: ''
+      }
+    }
+    this.setState({ modals, content });
   }
 
   _handleOnChange = (field, value) => {
@@ -366,7 +374,7 @@ class Links extends Component {
             </ModalBody>
             <ModalFooter>
               <Button className="modalBtnCancel" toggle={() => this._toggleModal(0)}
-                onClick={() => this._toggleModal(1)}
+                onClick={() => this._toggleModal(0)}
               >
                 Cancel
               </Button>

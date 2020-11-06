@@ -67,12 +67,10 @@ class ForgotPassword extends Component {
             handle: this.state.user.email
           }
           forgotPassword(obj).then(res => {
-            if (res.error) {
-              ToastsStore.error("Email not found...please check again!!!");
-            } else {
               ToastsStore.success("Password reset link sent to mail");
               this.props.history.push('/login')
-            }
+          }).catch((err) => {
+            ToastsStore.error("Error :- "+ err.reason);
           });
         }
       });
