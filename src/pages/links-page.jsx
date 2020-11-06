@@ -57,15 +57,16 @@ class Links extends Component {
   }
 
   _toggleModal = (index) => {
-    let { modals, content } = this.state;
+    let { modals, content, errors } = this.state;
     modals[index] = !modals[index];
     if (index === 0) {
       content = {
         title: '',
         url: ''
-      }
+      };
+      errors = {};
     }
-    this.setState({ modals, content });
+    this.setState({ modals, content, errors });
   }
 
   _handleOnChange = (field, value) => {
