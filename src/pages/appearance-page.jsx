@@ -1,11 +1,37 @@
 import React, { Component } from 'react';
-import { Col, Container, Row, Button, Card, CardBody, CustomInput, Label, } from 'reactstrap';
+import { Col, Container, Row, Button, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Label, } from 'reactstrap';
 import { connect } from "react-redux";
 import { uploadCloudinary, updateUserData } from '../http/http-calls';
 import { addUserAvatar, addUserTheme } from '../redux/actions/user-data';
 import config from '../config';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 class Appearance extends Component {
+
+	state = {
+		modal: false,
+		src: null,
+		crop: {
+			unit: '%',
+			width: 30,
+			aspect: 9 / 9,
+		},
+		croppedImageUrl: null
+	}
+
+	_toggleModal = () => {
+		let { modal, src, crop, croppedImageUrl } = this.state;
+		modal = !modal;
+		src = null;
+		croppedImageUrl = null;
+		crop = {
+			unit: '%',
+			width: 30,
+			aspect: 9 / 9,
+		};
+		this.setState({ modal, src, crop, croppedImageUrl });
+	}
 
 	_selectedTheme = (theme) => {
 		let obj = {
@@ -83,10 +109,76 @@ class Appearance extends Component {
 		return textClass;
 	}
 
-	_uploadImage = (e) => {
-		const file = e.target.files[0];
+	// for image uploading
+	onSelectFile = e => {
+		if (e.target.files && e.target.files.length > 0) {
+			const reader = new FileReader();
+			reader.addEventListener('load', () =>
+				this.setState({ src: reader.result })
+			);
+			reader.readAsDataURL(e.target.files[0]);
+		}
+		this._toggleModal();
+	};
+
+	onImageLoaded = image => {
+		this.imageRef = image;
+	};
+
+	onCropComplete = crop => {
+		this.makeClientCrop(crop);
+	};
+
+	onCropChange = (crop) => {
+		this.setState({ crop });
+	};
+
+	async makeClientCrop(crop) {
+		if (this.imageRef && crop.width && crop.height) {
+			const croppedImageUrl = await this.getCroppedImg(
+				this.imageRef,
+				crop,
+				'newFile.jpeg'
+			);
+			this.setState({ croppedImageUrl });
+		}
+	}
+
+	getCroppedImg(image, crop, fileName) {
+		const canvas = document.createElement('canvas');
+		const scaleX = image.naturalWidth / image.width;
+		const scaleY = image.naturalHeight / image.height;
+		canvas.width = crop.width;
+		canvas.height = crop.height;
+		const ctx = canvas.getContext('2d');
+
+		ctx.drawImage(
+			image,
+			crop.x * scaleX,
+			crop.y * scaleY,
+			crop.width * scaleX,
+			crop.height * scaleY,
+			0,
+			0,
+			crop.width,
+			crop.height
+		);
+
+		return new Promise((resolve) => {
+			canvas.toBlob(blob => {
+				if (!blob) {
+					console.error('Canvas is empty');
+					return;
+				}
+				blob.name = fileName;
+				resolve(blob);
+			}, 'image/jpeg', 1);
+		});
+	}
+
+	_uploadImage = () => {
 		const fd = new FormData();
-		fd.append('file', file);
+		fd.append('file', this.state.croppedImageUrl);
 		uploadCloudinary(fd).then(res => {
 			if (!res.error) {
 				const obj = {
@@ -99,9 +191,12 @@ class Appearance extends Component {
 				}).catch(err => console.log(err));
 			}
 		}).catch(err => console.log(err));
+		this._toggleModal();
 	}
 
 	render() {
+		const { crop, croppedImageUrl, src } = this.state;
+
 		return (
 			<div className="app flex-row animated fadeIn innerPagesBg">
 				<Container>
@@ -117,7 +212,7 @@ class Appearance extends Component {
 										<h4 style={{ fontWeight: 600, marginBottom: 0 }}>Profile</h4>
 										<div className="text-center">
 											<Label className="btn uploadBtnProfile">
-												<input type="file" style={{ display: 'none' }} onChange={(e) => this._uploadImage(e)} />
+												<input type="file" style={{ display: 'none' }} onChange={this.onSelectFile} />
 												{this.props.userData.avatarLink ?
 													<img src={this.props.userData.avatarLink} alt="chosen" style={{ height: '100px', width: '100px' }} />
 													: <img alt="" className="" src={'assets/img/user-img-default.png'} />
@@ -133,7 +228,8 @@ class Appearance extends Component {
 										<h4 style={{ fontWeight: 600, marginBottom: 0 }}>Themes</h4>
 										<Row>
 											<Col md={6} lg={4}>
-												<Button className="selectTheme themeSeleted" onClick={() => this._selectedTheme("Light")}>
+												<Button className={this.props.userData.template === "Light" ? "selectTheme themeSeleted" : "selectTheme"}
+												 onClick={() => this._selectedTheme("Light")}>
 													<div className="themeLight">
 														<div className="themeLightBtn"></div>
 														<div className="themeLightBtn"></div>
@@ -143,7 +239,8 @@ class Appearance extends Component {
 												<p className="themeName">Light</p>
 											</Col>
 											<Col md={6} lg={4}>
-												<Button className="selectTheme" onClick={() => this._selectedTheme("Dark")}>
+												<Button className={this.props.userData.template === "Dark" ? "selectTheme themeSeleted" : "selectTheme"}
+												 onClick={() => this._selectedTheme("Dark")}>
 													<div className="themeDark">
 														<div className="themeDarkBtn"></div>
 														<div className="themeDarkBtn"></div>
@@ -153,7 +250,8 @@ class Appearance extends Component {
 												<p className="themeName">Dark</p>
 											</Col>
 											<Col md={6} lg={4}>
-												<Button className="selectTheme" onClick={() => this._selectedTheme("Scooter")}>
+												<Button className={this.props.userData.template === "Scooter" ? "selectTheme themeSeleted" : "selectTheme"}
+												 onClick={() => this._selectedTheme("Scooter")}>
 													<div className="themeScooter">
 														<div className="themeScooterBtn"></div>
 														<div className="themeScooterBtn"></div>
@@ -163,7 +261,8 @@ class Appearance extends Component {
 												<p className="themeName">Scooter</p>
 											</Col>
 											<Col md={6} lg={4}>
-												<Button className="selectTheme" onClick={() => this._selectedTheme("Leaf")}>
+												<Button className={this.props.userData.template === "Leaf" ? "selectTheme themeSeleted" : "selectTheme"}
+												 onClick={() => this._selectedTheme("Leaf")}>
 													<div className="themeLeaf">
 														<div className="themeLeafBtn"></div>
 														<div className="themeLeafBtn"></div>
@@ -173,7 +272,8 @@ class Appearance extends Component {
 												<p className="themeName">Leaf</p>
 											</Col>
 											<Col md={6} lg={4}>
-												<Button className="selectTheme" onClick={() => this._selectedTheme("Moon")}>
+												<Button className={this.props.userData.template === "Moon" ? "selectTheme themeSeleted" : "selectTheme"}
+												 onClick={() => this._selectedTheme("Moon")}>
 													<div className="themeMoon">
 														<div className="themeMoonBtn"></div>
 														<div className="themeMoonBtn"></div>
@@ -219,6 +319,35 @@ class Appearance extends Component {
 									</div>
 								</div> {/* profilePreview */}
 							</div>
+
+							{/* Modal for showing Image preview */}
+							<Modal isOpen={this.state.modal} toggle={() => this._toggleModal()} className="modal-dialog-centered">
+								<ModalHeader toggle={() => this._toggleModal()}>Crop Image</ModalHeader>
+								<ModalBody className="modalContent">
+									<FormGroup>
+										{src && (
+											<ReactCrop
+												src={src}
+												crop={crop}
+												ruleOfThirds
+												onImageLoaded={this.onImageLoaded}
+												onComplete={this.onCropComplete}
+												onChange={this.onCropChange}
+											/>
+										)}
+									</FormGroup>
+								</ModalBody>
+								<ModalFooter>
+									<Button className="modalBtnCancel" toggle={() => this._toggleModal()}
+										onClick={() => this._toggleModal()}
+									>
+										Cancel
+              						</Button>
+									<Button className="modalBtnSave" onClick={() => this._uploadImage()}>
+										Save
+									</Button>
+								</ModalFooter>
+							</Modal>
 						</Col>
 					</Row>
 				</Container>

@@ -68,7 +68,7 @@ export const Content = ({ content, id }) => {
                 });
             } else if (
                 newContent.url.trim().length &&
-                !newContent.url.match(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)/)
+                !newContent.url.match(/^https?:\/\/(?!\/)/i)
             ) {
                 newContent.errors.url = "Not a proper URL format"
             } else {
@@ -82,12 +82,26 @@ export const Content = ({ content, id }) => {
     }
 
     const _editContent = () => {
+        let newContent = contentData;
+        if (!newContent.title.trim().length || !newContent.url.trim().length) {
+            Object.keys(contentData).forEach((each) => {
+                if (each === "title") {
+                    if (!newContent.title.trim().length) {
+                        newContent.title = content.content.title
+                    }
+                } else if (each === "url") {
+                    if (!newContent.url.trim().length) {
+                        newContent.url = content.content.url
+                    }
+                }
+            });
+        }
         let payload = {
             content: {
                 _id: id,
                 type: "contentData",
-                title: contentData.title,
-                url: contentData.url
+                title: newContent.title,
+                url: newContent.url
             }
         }
         dispatch({

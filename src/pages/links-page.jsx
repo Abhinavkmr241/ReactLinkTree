@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Col, Container, Row, Button, Card, CardBody, CustomInput, Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Label, Input } from 'reactstrap';
+import { Col, Container, Row, Button, Card, CardBody, Modal, ModalHeader, ModalBody, ModalFooter, FormGroup, Label, Input } from 'reactstrap';
 import { findPage, createFirstContent, callEditContent, findUser } from '../http/http-calls';
 import { connect } from "react-redux";
 import { addContent, editContent, removeContent, addId, deleteItem } from "../redux/actions/content-data";
