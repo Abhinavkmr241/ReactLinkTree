@@ -288,9 +288,9 @@ class Appearance extends Component {
 							</div>
 
 							<div className="profilePreviewWrap">
-								<Button className="shareProfileBtn">
+								{/* <Button className="shareProfileBtn">
 									Share
-                				</Button>
+                				</Button> */}
 								{/* change the theme class name accordingly, default is previewLight */}
 								<div className={`profilePreview ${this._themeClassSelector(this.props.userData.template)}`} >
 									<div className="text-center">

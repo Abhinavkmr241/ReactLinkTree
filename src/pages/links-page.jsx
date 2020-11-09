@@ -10,6 +10,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { FacebookShareButton, WhatsappShareButton, FacebookIcon, WhatsappIcon } from "react-share";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { ToastsStore } from 'react-toasts';
+import QRCode from 'qrcode.react';
 
 class Links extends Component {
   state = {
@@ -394,28 +395,36 @@ class Links extends Component {
             <ModalHeader toggle={() => this._toggleModal(1)}>Share</ModalHeader>
             <ModalBody className="modalContent">
               <FormGroup>
-               <div style={{display: "flex", justifyContent: "space-around"}}>
-                <div>
-                  <FacebookShareButton 
-                    url={`${this.state.pageUrl}/profile/${this.props.userData.userName}`}
-                    title="Facebook :- "
-                    style={{outline: "none"}}
-                  >
-                    <FacebookIcon size={50} round />
-                    <h6>Facebook</h6>
-                  </FacebookShareButton>
+                <div style={{ display: "flex", justifyContent: "space-around" }}>
+                  <div>
+                    <FacebookShareButton
+                      url={`${this.state.pageUrl}/profile/${this.props.userData.userName}`}
+                      title="Facebook :- "
+                      style={{ outline: "none" }}
+                    >
+                      <FacebookIcon size={50} round />
+                      <h6>Facebook</h6>
+                    </FacebookShareButton>
+                  </div>
+                  <div>
+                    <WhatsappShareButton
+                      url={`${this.state.pageUrl}/profile/${this.props.userData.userName}`}
+                      title="WhatsApp :- "
+                      style={{ outline: "none" }}
+                    >
+                      <WhatsappIcon size={50} round />
+                      <h6>WhatsApp</h6>
+                    </WhatsappShareButton>
+                  </div>
                 </div>
-                <div>
-                   <WhatsappShareButton
-                     url={`${this.state.pageUrl}/profile/${this.props.userData.userName}`}
-                     title="WhatsApp :- "
-                     style={{outline: "none"}}
-                   >
-                     <WhatsappIcon size={50} round />
-                     <h6>WhatsApp</h6>
-                   </WhatsappShareButton>
-                </div>  
-               </div>
+              </FormGroup>
+              <FormGroup>
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <div>
+                    <QRCode value={`${this.state.pageUrl}/profile/${this.props.userData.userName}`} />
+                    <p style={{textAlign: "center"}}>Scan QR</p>
+                  </div>
+                </div>
               </FormGroup>
             </ModalBody>
             <ModalFooter>
@@ -425,10 +434,10 @@ class Links extends Component {
                 Cancel
               </Button>
               <Button className="modalBtnSave">
-              <CopyToClipboard text={`${this.state.pageUrl}/profile/${this.props.userData.userName}`}
-                onCopy={() => ToastsStore.success("Link copied to Clipboard...")}>
-                <span>Copy Link</span>
-              </CopyToClipboard>
+                <CopyToClipboard text={`${this.state.pageUrl}/profile/${this.props.userData.userName}`}
+                  onCopy={() => ToastsStore.success("Link copied to Clipboard...")}>
+                  <span>Copy Link</span>
+                </CopyToClipboard>
               </Button>
             </ModalFooter>
           </Modal>
